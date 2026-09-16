@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Aster &amp; Row — Support</title>
+<style>
+  :root {
+    --paper: #f4f0e8;
+    --ink: #23291f;
+    --moss: #3d5a3d;
+    --moss-deep: #26392a;
+    --clay: #a8593f;
+    --line: #cfc6b3;
+    --panel: #fbf9f4;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    border-bottom: 1px solid var(--line);
+    padding: 28px 32px 20px;
+  }
+
+  header h1 {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
+  header p {
+    margin: 6px 0 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 0.85rem;
+    color: #5b6154;
+    max-width: 60ch;
+    line-height: 1.5;
+  }
+
+  main {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    padding: 24px 16px 140px;
+  }
+
+  #thread {
+    width: 100%;
+    max-width: 640px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  .row { display: flex; }
+  .row.user { justify-content: flex-end; }
+  .row.agent { justify-content: flex-start; }
+
+  .bubble {
+    max-width: 82%;
+    padding: 14px 18px;
+    line-height: 1.55;
+    font-size: 0.98rem;
+  }
+
+  .row.user .bubble {
+    background: var(--moss-deep);
+    color: var(--panel);
+    border-radius: 3px 3px 0 3px;
+  }
+
+  .row.agent .bubble {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 0 3px 3px 3px;
+  }
+
+  .meta {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .source-tag {
+    font-family: "SF Mono", ui-monospace, monospace;
+    font-size: 0.68rem;
+    color: var(--moss);
+    border: 1px solid var(--moss);
+    padding: 2px 7px;
+    border-radius: 2px;
+    background: #eef2ea;
+  }
+
+  .badge {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 2px;
+  }
+
+  .badge.tool {
+    background: #e8e2d0;
+    color: #5b5240;
+  }
+
+  .badge.handoff {
+    background: #f3e2dc;
+    color: var(--clay);
+    border: 1px solid var(--clay);
+  }
+
+  #composer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, var(--paper) 60%, transparent);
+    padding: 28px 16px 24px;
+    display: flex;
+    justify-content: center;
+  }
+
+  #composer form {
+    width: 100%;
+    max-width: 640px;
+    display: flex;
+    gap: 10px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 6px 6px 6px 16px;
+    border-radius: 3px;
+  }
+
+  #composer input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 0.98rem;
+    padding: 10px 0;
+    outline: none;
+    color: var(--ink);
+  }
+
+  #composer button {
+    border: none;
+    background: var(--moss);
+    color: var(--panel);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 0.85rem;
+    padding: 0 18px;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+
+  #composer button:disabled { opacity: 0.5; cursor: default; }
+
+  .placeholder {
+    color: #8a8168;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 0.9rem;
+    text-align: center;
+    margin-top: 60px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Aster &amp; Row Support</h1>
+  <p>Ask about returns, shipping, warranty, or your order. Answers on policy are grounded in our current documentation with sources shown below each reply.</p>
+</header>
+
+<main>
+  <div id="thread">
+    <div class="placeholder">Try: "How long do I have to return a backpack?" or "Where is ORD-1002?"</div>
+  </div>
+</main>
+
+<div id="composer">
+  <form id="chat-form">
+    <input id="chat-input" type="text" placeholder="Type your message..." autocomplete="off" />
+    <button type="submit">Send</button>
+  </form>
+</div>
+
+<script>
+  let sessionId = null;
+  const thread = document.getElementById("thread");
+  const form = document.getElementById("chat-form");
+  const input = document.getElementById("chat-input");
+
+  function clearPlaceholder() {
+    const ph = thread.querySelector(".placeholder");
+    if (ph) ph.remove();
+  }
+
+  function addUserMessage(text) {
+    clearPlaceholder();
+    const row = document.createElement("div");
+    row.className = "row user";
+    row.innerHTML = `<div class="bubble"></div>`;
+    row.querySelector(".bubble").textContent = text;
+    thread.appendChild(row);
+    window.scrollTo(0, document.body.scrollHeight);
+  }
+
+  function addAgentMessage(data) {
+    const row = document.createElement("div");
+    row.className = "row agent";
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+
+    const text = document.createElement("div");
+    text.textContent = data.response;
+    bubble.appendChild(text);
+
+    const meta = document.createElement("div");
+    meta.className = "meta";
+
+    if (data.tool_called) {
+      const b = document.createElement("span");
+      b.className = "badge tool";
+      b.textContent = "order lookup used";
+      meta.appendChild(b);
+    }
+
+    if (data.handoff) {
+      const b = document.createElement("span");
+      b.className = "badge handoff";
+      b.textContent = "human handoff recommended";
+      meta.appendChild(b);
+    }
+
+    (data.sources || []).forEach((src) => {
+      const tag = document.createElement("span");
+      tag.className = "source-tag";
+      tag.textContent = src;
+      meta.appendChild(tag);
+    });
+
+    if (meta.children.length > 0) bubble.appendChild(meta);
+
+    row.appendChild(bubble);
+    thread.appendChild(row);
+    window.scrollTo(0, document.body.scrollHeight);
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const message = input.value.trim();
+    if (!message) return;
+
+    addUserMessage(message);
+    input.value = "";
+    input.disabled = true;
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId, message }),
+      });
+      const data = await res.json();
+      sessionId = data.session_id;
+      addAgentMessage(data);
+    } catch (err) {
+      addAgentMessage({
+        response: "Could not reach the support agent. Please try again.",
+        sources: [],
+        handoff: true,
+        tool_called: false,
+      });
+    } finally {
+      input.disabled = false;
+      input.focus();
+    }
+  });
+</script>
+
+</body>
+</html>
